@@ -2,10 +2,12 @@ import numpy as np
 from model import common_util
 from sklearn.preprocessing import MinMaxScaler
 from keras import backend as K
+from netCDF4 import Dataset
 
 def create_data_prediction(**kwargs):
 
     data_npz = kwargs['data'].get('dataset')
+    # data_npz1 = kwargs['data'].get('dataset1')
     seq_len = kwargs['model'].get('seq_len')
     horizon = kwargs['model'].get('horizon')
 
@@ -25,8 +27,19 @@ def create_data_prediction(**kwargs):
     input_model = np.zeros(shape=(T, 160, 120, 1))
     # output is gauge
     output_model = np.zeros(shape=(T, 160, 120, 1))
+    
+    original_nc = Dataset('data/conv2d_gsmap/gsmap_2011_2018.nc', 'r')
 
+# check dataset
+    gsmap_time = np.array(original_nc['time'][:])
+    gsmap_lon = np.array(original_nc['lon'][:])
+    gsmap_lat = np.array(original_nc['lat'][:])
+    gsmap_precip = np.array(original_nc['precip'][:])
+    gsmap_precip = np.round(gsmap_precip, 6)
+    
     for i in range(len(gauge_lat)):
+        if i == 5:
+            continue
         lat = map_lat[i]
         lon = map_lon[i]
         temp_lat = int(round((23.95 - lat) / 0.1))

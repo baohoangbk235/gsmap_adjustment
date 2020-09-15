@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+data/conv2d_gsmap/
 # Distribution / packaging
 .vscode/
 .Python
