@@ -42,8 +42,8 @@ class Conv2DSupervisor():
 
         # Input
         model.add(
-            Conv2D(filters=64,
-                   kernel_size=(3, 3),
+            Conv2D(filters=32,
+                   kernel_size=(5, 5),
                    padding='same',
                    activation=self.activation,
                    name='input_layer_conv2d',
@@ -53,21 +53,21 @@ class Conv2DSupervisor():
         # Max Pooling - Go deeper
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            Conv2D(64, (3, 3),
+            Conv2D(32, (5, 5),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_1'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            Conv2D(64, (3, 3),
+            Conv2D(32, (5, 5),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_2'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            Conv2D(64, (3, 3),
+            Conv2D(32, (5, 5),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_3'))
@@ -76,21 +76,21 @@ class Conv2DSupervisor():
         # Up Sampling
         model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            Conv2D(64, (3, 3),
+            Conv2D(32, (5, 5),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_4'))
         model.add(BatchNormalization())
         model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            Conv2D(64, (3, 3),
+            Conv2D(32, (5, 5),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_5'))
         model.add(BatchNormalization())
         model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            Conv2D(64, (3, 3),
+            Conv2D(32, (5, 5),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_6'))
@@ -98,7 +98,7 @@ class Conv2DSupervisor():
 
         model.add(
             Conv2D(filters=1,
-                   kernel_size=(3, 3),
+                   kernel_size=(5, 5),
                    padding='same',
                    name='output_layer_conv2d',
                    activation=self.activation))
@@ -124,7 +124,7 @@ class Conv2DSupervisor():
                                           validation_data=(self.input_valid,
                                                            self.target_valid),
                                           shuffle=True,
-                                          verbose=1)
+                                          verbose=0)
 
         if training_history is not None:
             common_util._plot_training_history(training_history,
@@ -194,16 +194,20 @@ class Conv2DSupervisor():
 
         groundtruth = np.array(groundtruth)
         preds = np.array(preds)
+        np.savetxt(self.log_dir + 'groundtruth.csv', np.transpose(groundtruth), delimiter=",")
+        np.savetxt(self.log_dir + 'preds.csv', np.transpose(preds), delimiter=",")
+        #
         np.savetxt(self.log_dir + 'list_metrics.csv', list_metrics, delimiter=",")
-        np.savetxt(self.log_dir + 'groundtruth.csv', groundtruth, delimiter=",")
-        np.savetxt(self.log_dir + 'preds.csv', preds, delimiter=",")
 
     def plot_result(self):
         from matplotlib import pyplot as plt
-        preds = np.load(self.log_dir + 'pd.npy')
-        gt = np.load(self.log_dir + 'gt.npy')
-        plt.plot(preds[:], label='preds')
-        plt.plot(gt[:], label='gt')
-        plt.legend()
-        plt.savefig(self.log_dir + 'result_predict.png')
-        plt.close()
+        preds = read_csv(self.log_dir + 'preds.csv')
+        gt = read_csv(self.log_dir + 'groundtruth.csv')
+        preds = preds.to_numpy()
+        gt = gt.to_numpy()
+        for i in range(0,3):
+            plt.plot(preds[i,:], label='preds')
+            plt.plot(gt[i,:], label='gt')
+            plt.legend()
+            plt.savefig(self.log_dir + 'result_predict_{}.png'.format(i))
+            plt.close()
