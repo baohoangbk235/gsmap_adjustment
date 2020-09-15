@@ -8,7 +8,7 @@ import glob
 
 def get_lon_lat_gauge_data():
 
-    preprocessed_data_dir = './data/conv2d_gsmap/preprocessed_txt_data/'
+    preprocessed_data_dir = '/content/drive/My Drive/preprocessed_gauge_data/'
     start_index = len(preprocessed_data_dir)
     type_file = '.csv'
     end_index = -len(type_file)
@@ -56,7 +56,7 @@ def find_lat_lon_remapnn():
                 precip_list[i, 0], 6))  # 0 because of precip_list is (xxx,1)
             if len(index_pos[0]) == 1 and len(index_pos[1]) == 1:
                 break
-
+    
     # get lat and long
     # 0 is lat
     # 1 is lon
@@ -94,7 +94,7 @@ def save_to_npz():
     raw_gsmap = Dataset('data/conv2d_gsmap/gsmap_2011_2018.nc', 'r')
     time = np.array(raw_gsmap['time'][:])
 
-    np.savez('data/conv2d_gsmap/npz/map_gauge_72_stations.npz',
+    np.savez('data/conv2d_gsmap/map_gauge_72_stations.npz',
              time=time,
              map_lat=map_lat,
              map_lon=map_lon,
@@ -105,7 +105,7 @@ def save_to_npz():
 
 
 def cal_error_gauge_gsmap():
-    dataset = 'data/conv2d_gsmap/npz/map_gauge_72_stations.npz'
+    dataset = 'data/conv2d_gsmap/map_gauge_72_stations.npz'
     map_precip = np.load(dataset)['map_precip']
     gauge_precip = np.load(dataset)['gauge_precip']
     cal_error(gauge_precip[-354:, :], map_precip[-354:, :])

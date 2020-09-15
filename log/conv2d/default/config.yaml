@@ -8,14 +8,14 @@ data:
   valid_size: 0.2
 log_level: INFO
 model:
-  rnn_units: 100
   activation: relu
-  seq_len: 4
   horizon: 0
+  rnn_units: 100
+  seq_len: 4
 train:
   dropout: 0
   epochs: 300
+  log_dir: log/conv2d/default/
+  loss: mse
   optimizer: adam
   patience: 15
-  loss: mse
-

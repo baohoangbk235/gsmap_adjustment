@@ -7,17 +7,17 @@ from netCDF4 import Dataset
 def create_data_prediction(**kwargs):
 
     data_npz = kwargs['data'].get('dataset')
-    # data_npz1 = kwargs['data'].get('dataset1')
+    data_npz1 = kwargs['data'].get('dataset1')
     seq_len = kwargs['model'].get('seq_len')
     horizon = kwargs['model'].get('horizon')
 
-    time = np.load(data_npz)['time']
+    time = np.load(data_npz1)['time']
     # horizon is in seq_len. the last
     T = len(time)
 
     map_lon = np.load(data_npz)['map_lon']
     map_lat = np.load(data_npz)['map_lat']
-    map_precip = np.load(data_npz)['map_precip']
+    map_precip = np.load(data_npz1)['map_precip']
     # map_precip = np.load('../drive/My Drive/min_all.npz')['map_precip']
 
     gauge_lon = np.load(data_npz)['gauge_lon']
