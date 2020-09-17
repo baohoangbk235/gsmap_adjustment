@@ -107,3 +107,5 @@ venv.bak/
 
 *.nc
 !data/conv2d_gsmap/npz/gauge_data.npz
+
+precip/
