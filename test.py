@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-print(int(round((23.95-14.75)/0.1)))
-=======
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy.random import rand
@@ -12,4 +9,3 @@ print(data['map_lat'])
 
 print(data['gauge_lon'])
 print(data['gauge_lat'])
->>>>>>> origin/correlation
