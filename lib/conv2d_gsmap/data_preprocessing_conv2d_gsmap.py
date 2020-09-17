@@ -131,5 +131,5 @@ def cal_error(test_arr, prediction_arr):
         return error_list
 
 
-save_to_npz()
+# save_to_npz()
 cal_error_gauge_gsmap()
