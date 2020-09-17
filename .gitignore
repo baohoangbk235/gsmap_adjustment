@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+data/conv2d_gsmap/
 # Distribution / packaging
 .vscode/
 .Python
@@ -14,6 +14,8 @@ develop-eggs/
 dist/
 downloads/
 eggs/
+log/conv2d/default/
+data/
 .eggs/
 lib64/
 parts/
@@ -24,7 +26,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+data/conv2d_gsmap/
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -104,5 +106,4 @@ venv.bak/
 .mypy_cache/
 
 *.nc
-*.npz
 !data/conv2d_gsmap/npz/gauge_data.npz

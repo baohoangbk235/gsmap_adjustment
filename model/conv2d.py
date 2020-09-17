@@ -1,14 +1,14 @@
+from keras.layers import Conv2D, BatchNormalization, MaxPooling2D, UpSampling2D
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, MaxPooling2D, Conv2D, Conv2DTranspose, UpSampling2D, Cropping2D, Cropping3D, MaxPooling3D, UpSampling3D
-from keras.layers.convolutional import Conv3D, Conv3DTranspose
-from keras.layers.convolutional_recurrent import ConvLSTM2D
-from keras.layers.normalization import BatchNormalization
 import numpy as np
 from model import common_util
 import model.utils.conv2d as utils_conv2d
 import os
 import yaml
 from pandas import read_csv
+from keras.utils import plot_model
+from keras import backend as K
+from keras.losses import mse
 
 
 class Conv2DSupervisor():
@@ -42,68 +42,66 @@ class Conv2DSupervisor():
 
         # Input
         model.add(
-            ConvLSTM2D(filters=16,
-                       kernel_size=(3, 3),
-                       padding='same',
-                       return_sequences=True,
-                       activation = self.activation,
-                       name = 'input_layer_convlstm2d',
-                       input_shape=(self.seq_len, 160, 120, 1)))
-        # model.add(BatchNormalization())
+            Conv2D(filters=32,
+                   kernel_size=(3, 3),
+                   padding='same',
+                   activation=self.activation,
+                   name='input_layer_conv2d',
+                   input_shape=(160, 120, 1)))
+        model.add(BatchNormalization())
 
         # Max Pooling - Go deeper
-        model.add(MaxPooling3D(pool_size=(2, 2, 1)))
-
+        model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            ConvLSTM2D(filters=16,
-                       kernel_size=(3, 3),
-                       padding='same',
-                       activation = self.activation,
-                       name='hidden_layer_convlstm2d_1',
-                       return_sequences=True))
-        # model.add(BatchNormalization())
-
-        model.add(MaxPooling3D(pool_size=(2, 2, 1)))
-
+            Conv2D(32, (3, 3),
+                   activation='relu',
+                   padding='same',
+                   name='hidden_conv2d_1'))
+        model.add(BatchNormalization())
+        model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            ConvLSTM2D(filters=32,
-                       kernel_size=(3, 3),
-                       padding='same',
-                       activation = self.activation,
-                       name='hidden_layer_convlstm2d_2',
-                       return_sequences=True))
-        # model.add(BatchNormalization())
+            Conv2D(32, (3, 3),
+                   activation='relu',
+                   padding='same',
+                   name='hidden_conv2d_2'))
+        model.add(BatchNormalization())
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(
+            Conv2D(32, (3, 3),
+                   activation='relu',
+                   padding='same',
+                   name='hidden_conv2d_3'))
+        model.add(BatchNormalization())
 
         # Up Sampling
-        model.add(UpSampling3D(size=(2, 2, 1)))
-
+        model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            ConvLSTM2D(filters=16,
-                       kernel_size=(3, 3),
-                       padding='same',
-                       activation = self.activation,
-                       name='hidden_layer_convlstm2d_3',
-                       return_sequences=True))
-        # model.add(BatchNormalization())
-
-        model.add(UpSampling3D(size=(2, 2, 1)))
-
-        model.add(
-            ConvLSTM2D(filters=16,
-                       kernel_size=(3, 3),
-                       padding='same',
-                       activation = self.activation,
-                       name='hidden_layer_convlstm2d_4',
-                       return_sequences=True))
-        # model.add(BatchNormalization())
-
-        model.add(
-            Conv3D(filters=1,
-                   kernel_size=(3, 3, 1),
+            Conv2D(32, (3, 3),
+                   activation='relu',
                    padding='same',
-                   name='output_layer_conv3d',
-                   activation=self.activation))
+                   name='hidden_conv2d_4'))
+        model.add(BatchNormalization())
+        model.add(UpSampling2D(size=(2, 2)))
+        model.add(
+            Conv2D(32, (3, 3),
+                   activation='relu',
+                   padding='same',
+                   name='hidden_conv2d_5'))
+        model.add(BatchNormalization())
+        model.add(UpSampling2D(size=(2, 2)))
+        model.add(
+            Conv2D(32, (3, 3),
+                   activation='relu',
+                   padding='same',
+                   name='hidden_conv2d_6'))
+        model.add(BatchNormalization())
 
+        model.add(
+            Conv2D(filters=1,
+                   kernel_size=(3, 3),
+                   padding='same',
+                   name='output_layer_conv2d',
+                   activation=self.activation))
         print(model.summary())
 
         # plot model
@@ -126,7 +124,7 @@ class Conv2DSupervisor():
                                           validation_data=(self.input_valid,
                                                            self.target_valid),
                                           shuffle=True,
-                                          verbose=2)
+                                          verbose=1)
 
         if training_history is not None:
             common_util._plot_training_history(training_history,
@@ -142,78 +140,74 @@ class Conv2DSupervisor():
                 yaml.dump(config, f, default_flow_style=False)
 
     def test_prediction(self):
-        import sys
         print("Load model from: {}".format(self.log_dir))
         self.model.load_weights(self.log_dir + 'best_model.hdf5')
         self.model.compile(optimizer=self.optimizer, loss=self.loss)
 
         input_test = self.input_test
         actual_data = self.target_test
-        predicted_data = np.zeros(shape=(len(actual_data), self.horizon, 160,
-                                         120, 1))
+        predicted_data = np.zeros(shape=(len(actual_data), 160, 120, 1))
         from tqdm import tqdm
-        iterator = tqdm(range(0,len(actual_data)))
+        iterator = tqdm(range(0, len(actual_data)))
         for i in iterator:
-            input = np.zeros(shape=(1, self.seq_len, 160, 120, 1))
+            input = np.zeros(shape=(1, 160, 120, 1))
             input[0] = input_test[i].copy()
-            yhats = self.model.predict(input)   
-            predicted_data[i, 0] = yhats[0, -1]            
-            print("Prediction: ", np.count_nonzero(predicted_data[i, 0] > 0), "Actual: ", np.count_nonzero(actual_data[i, -1]>0))
-        
-        data_npz = self.config_model['data_kwargs'].get('dataset')
-        lon = np.load(data_npz)['input_lon']
-        lat = np.load(data_npz)['input_lat']
+            yhats = self.model.predict(input)
+            predicted_data[i] = yhats[0]
 
-        gauge_dataset = self.config_model['data_kwargs'].get('gauge_dataset')
-        gauge_lon = np.load(gauge_dataset)['gauge_lon']
-        gauge_lat = np.load(gauge_dataset)['gauge_lat']
-        gauge_precipitation = np.load(gauge_dataset)['gauge_precip']
+        dataset = self.config_model['data_kwargs'].get('dataset')
+        map_lon = np.load(dataset)['map_lon']
+        map_lat = np.load(dataset)['map_lat']
 
-        actual_arr = []
-        preds_arr = []
-        gauge_arr = []
-
-        # MAE for 72x72 matrix including gauge data
-        for index, lat in np.ndenumerate(lat):
-            temp_lat = int(round((23.95-lat)/0.1))
-
-            for index, lon in np.ndenumerate(lon):
-                temp_lon = int(round((lon-100.05)/0.1))
-
-                # actual data
-                actual_precip = actual_data[:, 0, temp_lat, temp_lon, 0]
-                actual_arr.append(actual_precip)
-
-                # prediction data
-                preds = predicted_data[:, 0, temp_lat, temp_lon, 0]
-                preds_arr.append(preds)
-        
-        common_util.mae(actual_arr, preds_arr)
-        
-        preds_arr = []
+        groundtruth = []
+        preds = []
+        total_margin = 0
+        list_metrics = np.zeros(shape=(len(map_lat) + 1, 3))
         # MAE for only gauge data
-        for i in range(len(gauge_lat)):
-            lat = gauge_lat[i]
-            lon = gauge_lon[i]
-            temp_lat = int(round((23.95-lat)/0.1))
-            temp_lon = int(round((lon-100.05)/0.1))
+        for i in range(0, len(map_lat)):
+            lat = map_lat[i]
+            lon = map_lon[i]
+            temp_lat = int(round((23.95 - lat) / 0.1))
+            temp_lon = int(round((lon - 100.05) / 0.1))
 
             # gauge data
-            gauge_precip = gauge_precipitation[-353:, i]
-            gauge_arr.append(gauge_precip)
+            gt = actual_data[:, temp_lat, temp_lon, 0].copy()
+            groundtruth.append(gt)
 
             # prediction data
-            preds = predicted_data[:, 0, temp_lat, temp_lon, 0]
-            preds_arr.append(preds)
+            yhat = predicted_data[:, temp_lat, temp_lon, 0].copy()
+            preds.append(yhat)
 
-        common_util.cal_error(gauge_arr, preds_arr)
+            x = np.count_nonzero(yhat > 0)
+            y = np.count_nonzero(gt > 0)
+
+            list_metrics[i+1, 0] = common_util.mae(gt, yhat)
+            list_metrics[i+1, 1] = common_util.rmse(gt, yhat)
+            margin = y - x
+            total_margin = total_margin + abs(margin)
+            list_metrics[i+1, 2] = margin
+
+        # total of 72 gauges
+        list_metrics[0, 0] = common_util.mae(groundtruth, preds)
+        list_metrics[0, 1] = common_util.rmse(groundtruth, preds)
+        list_metrics[0, 2] = total_margin
+
+        groundtruth = np.array(groundtruth)
+        preds = np.array(preds)
+        np.savetxt(self.log_dir + 'groundtruth.csv', np.transpose(groundtruth), delimiter=",")
+        np.savetxt(self.log_dir + 'preds.csv', np.transpose(preds), delimiter=",")
+        #
+        np.savetxt(self.log_dir + 'list_metrics.csv', list_metrics, delimiter=",")
 
     def plot_result(self):
         from matplotlib import pyplot as plt
-        preds = np.load(self.log_dir + 'pd.npy')
-        gt = np.load(self.log_dir + 'gt.npy')
-        plt.plot(preds[:], label='preds')
-        plt.plot(gt[:], label='gt')
-        plt.legend()
-        plt.savefig(self.log_dir + 'result_predict.png')
-        plt.close()
+        preds = read_csv(self.log_dir + 'preds.csv')
+        gt = read_csv(self.log_dir + 'groundtruth.csv')
+        preds = preds.to_numpy()
+        gt = gt.to_numpy()
+        for i in range(0,3):
+            plt.plot(preds[i,:], label='preds')
+            plt.plot(gt[i,:], label='gt')
+            plt.legend()
+            plt.savefig(self.log_dir + 'result_predict_{}.png'.format(i))
+            plt.close()
