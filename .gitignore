@@ -14,7 +14,7 @@ develop-eggs/
 dist/
 downloads/
 eggs/
-log/conv2d/default/
+log/
 data/
 .eggs/
 lib64/
