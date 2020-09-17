@@ -1,7 +1,7 @@
 import numpy as np
 from model import common_util
 from sklearn.preprocessing import MinMaxScaler
-from keras import backend as K
+from tensorflow.keras import backend as K
 from netCDF4 import Dataset
 
 def create_data_prediction(**kwargs):
