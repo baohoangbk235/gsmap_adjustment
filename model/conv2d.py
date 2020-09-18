@@ -50,7 +50,7 @@ class Conv2DSupervisor():
 
         # Input
         model.add(
-            Conv2D(filters=32,
+            Conv2D(filters=64,
                    kernel_size=(3, 3),
                    padding='same',
                    activation=self.activation,
@@ -61,21 +61,21 @@ class Conv2DSupervisor():
         # Max Pooling - Go deeper
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            Conv2D(32, (3, 3),
+            Conv2D(64, (3, 3),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_1'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            Conv2D(32, (3, 3),
+            Conv2D(64, (3, 3),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_2'))
         model.add(BatchNormalization())
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(
-            Conv2D(32, (3, 3),
+            Conv2D(64, (3, 3),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_3'))
@@ -84,21 +84,21 @@ class Conv2DSupervisor():
         # Up Sampling
         model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            Conv2D(32, (3, 3),
+            Conv2D(64, (3, 3),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_4'))
         model.add(BatchNormalization())
         model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            Conv2D(32, (3, 3),
+            Conv2D(64, (3, 3),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_5'))
         model.add(BatchNormalization())
         model.add(UpSampling2D(size=(2, 2)))
         model.add(
-            Conv2D(32, (3, 3),
+            Conv2D(64, (3, 3),
                    activation='relu',
                    padding='same',
                    name='hidden_conv2d_6'))
