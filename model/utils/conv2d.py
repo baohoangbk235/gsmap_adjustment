@@ -7,25 +7,28 @@ from netCDF4 import Dataset
 def create_data_prediction(**kwargs):
 
     data_npz = kwargs['data'].get('dataset')
-    data_npz1 = kwargs['data'].get('dataset1')
     seq_len = kwargs['model'].get('seq_len')
     horizon = kwargs['model'].get('horizon')
 
-    time = np.load(data_npz1)['time']
+    time = np.load(data_npz)['time']
     # horizon is in seq_len. the last
     T = len(time)
 
     map_lon = np.load(data_npz)['map_lon']
     map_lat = np.load(data_npz)['map_lat']
-    map_precip = np.load(data_npz1)['map_precip']
-    # map_precip = np.load('../drive/My Drive/min_all.npz')['map_precip']
+    map_precip = np.load(data_npz)['map_precip']
+    map_cloud_cover = np.load(data_npz)['map_cloud_cover']
+    map_sea_level = np.load(data_npz)['map_sea_level']
+    map_surface_temp = np.load(data_npz)['map_surface_temp']
+    map_wind_u_mean = np.load(data_npz)['map_wind_u_mean']
+    map_wind_v_mean = np.load(data_npz)['map_wind_v_mean']
 
     gauge_lon = np.load(data_npz)['gauge_lon']
     gauge_lat = np.load(data_npz)['gauge_lat']
     gauge_precip = np.load(data_npz)['gauge_precip']
 
     # input is gsmap
-    input_model = np.zeros(shape=(T, 160, 120, 1))
+    input_model = np.zeros(shape=(T, 160, 120, 3))
     # output is gauge
     output_model = np.zeros(shape=(T, 160, 120, 1))
     
@@ -46,6 +49,8 @@ def create_data_prediction(**kwargs):
         temp_lat = int(round((23.95 - lat) / 0.1))
         temp_lon = int(round((lon - 100.05) / 0.1))
         input_model[:, temp_lat, temp_lon, 0] = map_precip[:, i]
+        input_model[:, temp_lat, temp_lon, 1] = map_wind_u_mean[:, i]
+        input_model[:, temp_lat, temp_lon, 2] = map_wind_v_mean[:, i]
         output_model[:, temp_lat, temp_lon, 0] = gauge_precip[:, i]
     return input_model, output_model
 
