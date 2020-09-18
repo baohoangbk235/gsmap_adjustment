@@ -1,6 +1,6 @@
 base_dir: log/conv2d/
 data:
-  batch_size: 64
+  batch_size: 200
   dataset:  data/conv2d_gsmap/map_gauge_72_stations.npz
   dataset1: data/npz/correlation.npz
   test_batch_size: 1
